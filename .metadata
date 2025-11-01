@@ -1,0 +1,15 @@
+analysis_options.yaml
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Misc
+*.log
+.DS_Store
