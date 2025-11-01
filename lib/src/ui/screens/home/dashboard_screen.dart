@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../../../models/pet.dart';
 import '../../../models/reminder.dart';
 import '../../../services/supabase_service.dart';
+import 'add_pet_screen.dart';
+import '../visits/timeline_screen.dart';
+import '../reminders/add_reminder_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -73,8 +76,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ? _buildEmptyState()
               : _buildDashboard(),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Navigate to add pet screen
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AddPetScreen()),
+          );
+          if (result == true) {
+            _loadData();
+          }
         },
         child: const Icon(Icons.add),
       ),
@@ -107,8 +116,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 32),
             ElevatedButton.icon(
-              onPressed: () {
-                // Navigate to add pet screen
+              onPressed: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AddPetScreen()),
+                );
+                if (result == true) {
+                  _loadData();
+                }
               },
               icon: const Icon(Icons.add),
               label: const Text('Add Your First Pet'),
@@ -256,8 +271,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: _buildActionCard(
                 icon: Icons.notifications,
                 label: 'Add Reminder',
-                onTap: () {
-                  // Navigate to add reminder
+                onTap: () async {
+                  if (_selectedPet != null) {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AddReminderScreen(pet: _selectedPet!),
+                      ),
+                    );
+                    if (result == true) {
+                      _loadData();
+                    }
+                  }
                 },
               ),
             ),
@@ -271,7 +296,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 icon: Icons.timeline,
                 label: 'Timeline',
                 onTap: () {
-                  // Navigate to timeline
+                  if (_selectedPet != null) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => TimelineScreen(pet: _selectedPet!),
+                      ),
+                    );
+                  }
                 },
               ),
             ),
