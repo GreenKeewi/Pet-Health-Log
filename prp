@@ -1,0 +1,643 @@
+Pet Health Log — Product Requirement Prompt (PRP)
+One-line summary
+
+A friendly, privacy-first iOS/Android app that helps pet owners track vet visits, medications, vaccines, weight, costs, and get AI-generated visit summaries, trend insights, and smart reminders.
+
+Tagline
+
+“Smart care for your furry family.”
+
+Core value props (MVP)
+
+Track pets (name, species, breed, DOB, photo).
+
+Upload vet documents/receipts → app extracts date, visit type, cost, and summary.
+
+AI-generated visit summary and next-action recommendation (reminder dates).
+
+Timeline of visits, medications, and upcoming reminders.
+
+Simple subscription model (free / pro / family) via RevenueCat.
+
+Target user
+
+Pet owners (dogs/cats first) who:
+
+Want to keep medical records organized
+
+Want automatic reminders for vaccines and meds
+
+Want clear summaries of vet visits (no jargon)
+
+Age 20–55, mobile-first, willing to pay ~$4.99/mo for convenience
+
+Platform & stack (MVP)
+
+Mobile cross-platform: Flutter (stable, single codebase, performant UI)
+
+Backend: Supabase (Postgres + Auth + Storage)
+
+AI: OpenAI GPT-4o-mini for text summarization, classification, and recommendations
+
+OCR (client): Google ML Kit Text Recognition (on-device) for receipts + vet notes
+
+Notifications: Firebase Cloud Messaging (FCM)
+
+Payments & subscriptions: RevenueCat (handles App Store & Play Store)
+
+Analytics: PostHog (self-host friendly) or Mixpanel
+
+CI / Builds: GitHub Actions + Fastlane for iOS release (TestFlight), Android via Play Console
+
+MVP Feature list (ordered)
+
+User auth (email / Apple / Google)
+
+Add pet (name, species, breed, DOB, sex, photo, weight)
+
+Pet Dashboard (health snapshot + next reminders)
+
+Add / scan vet visit (image upload or manual entry)
+
+OCR → auto-extract date, clinic, amount, visit notes
+
+AI summary & classification (visit type, short plain-language summary)
+
+Reminders (set, edit, push notifications)
+
+Timeline view (chronological visits & meds)
+
+PDF export / share (visit record)
+
+Subscription screen & RevenueCat integration
+
+Analytics events for retention funnel
+
+Screen-by-screen (UX) — wireframes & behavior
+0. Launch / Onboarding flow
+
+Screen A: Splash — app logo, tagline.
+
+Screen B: Simple benefits carousel (3 slides): “Track vaccines”, “AI summaries”, “Never miss meds”.
+
+Screen C: Signup — Email / Continue with Apple / Google. (Skip option: “Try as guest” — optional)
+
+Screen D: Add first pet (required to use app fully) — photo camera/upload, name, species, DOB, breed (autocomplete), weight.
+
+UX notes:
+
+Keep onboarding ≤ 60s. Use toggles to allow marketing opt-in for push / email.
+
+Make adding pet optional for experimenting, but encourage adding one pet for value unlock.
+
+1. Home / Pet Dashboard
+
+Top header: pet avatar, name, age, quick actions (Add Visit, Add Reminder, Ask AI)
+Cards:
+
+Next reminder (date + type) with CTA “Mark Done”
+
+Latest visit (date, short AI summary snippet)
+
+Weight trend sparkline (mini chart)
+
+Buttons: Timeline, Meds, Documents, Reports
+
+2. Timeline (main navigation)
+
+Infinite list grouped by month/year with item cards for visits, meds, notes
+
+Tap item → Visit detail screen
+
+3. Add Visit (camera / upload / manual)
+
+Tabs: Photo / Upload / Manual
+
+If Photo: camera opens, capture receipt or prescription. Show overlay guide “capture full document”.
+
+After capture: run OCR → show extracted fields in editable form:
+
+Clinic name, Date, Amount, Visit Notes (editable), Visit type (AI-suggested tag), Attachments
+
+Primary CTA: Save visit
+
+4. Visit Detail
+
+Header: Clinic, date, cost
+
+AI summary (collapsible) — one-paragraph plain-language summary
+
+Extracted fields list (meds prescribed, next steps)
+
+Buttons: Edit, Export PDF, Share
+
+5. Reminders page
+
+List of reminders by pet
+
+Add Reminder: recurrence (one-time, yearly, custom), notification time, note
+
+Smart suggestion: “Auto-suggest vaccine due dates based on last shot”
+
+6. Ask Vet AI (premium)
+
+Chat UI with system prompt: “You are a vet assistant. Provide general educational info, not a diagnosis.”
+
+Input: user text + attach pet profile
+
+Output: short answer + confidence level + “See a vet if…” CTA
+
+Include source badges if pulling from vetted doc (optional)
+
+7. Profile & Settings
+
+Manage pets, subscriptions (RevenueCat), notifications, export data
+
+Data & privacy: export all data, delete account
+
+Shareable “pet report” generator
+
+Visual / UI design spec
+Design language
+
+Friendly, clean, rounded UI; minimal distractions; accessible typography.
+
+Use clear cards, microanimations (Lottie for success), and soft shadows.
+
+Primary emphasis: trust & calmness (pets → comforting palette).
+
+Color palette
+
+Primary: #2B7A78 (teal) — actions & highlights
+
+Accent: #FFB4A2 (peach) — subtle CTAs
+
+Background: #FFFFFF
+
+Surface: #F7F9FA
+
+Text primary: #0F1724
+
+Text secondary: #6B7280
+
+Error: #EF4444
+
+Success: #10B981
+
+Typography
+
+Headline: Inter / Poppins Bold (24–32pt)
+
+Body: Inter / Poppins Regular (14–16pt)
+
+UI small: 12pt medium
+
+Line height and spacing: 1.4 — generous spacing for readability
+
+Iconography & imagery
+
+Use rounded icons (Material or custom)
+
+Use real pet photos for illustrations, not cartoony ones (increase trust)
+
+App icon: rounded square, teal background with simple paw silhouette in white
+
+Motion
+
+Use micro-interactions: card elevation on tap, small Lottie success confetti for new reminder saved
+
+Transitions: fade + slide for screen changes (200–300ms)
+
+Screenshot assets (store)
+
+5 screenshot frames per store: Onboarding + Key feature (Add Visit), Timeline, AI Summary, Reminders, Shareable Report
+
+Use 1242×2688 for iPhone tall screenshots as base; export sizes for Android accordingly.
+
+Data model (Supabase / Postgres)
+
+Below are SQL CREATE TABLE statements for Supabase.
+
+-- Users are created via Supabase Auth; however we keep a profile table for extras
+CREATE TABLE profiles (
+  id uuid PRIMARY KEY REFERENCES auth.users(id),
+  display_name text,
+  email text,
+  created_at timestamptz DEFAULT now()
+);
+
+-- Pets
+CREATE TABLE pets (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  owner_id uuid REFERENCES profiles(id) ON DELETE CASCADE,
+  name text NOT NULL,
+  species text NOT NULL, -- dog | cat | other
+  breed text,
+  dob date,
+  sex text,
+  avatar_url text,
+  weight_kg numeric,
+  created_at timestamptz DEFAULT now()
+);
+
+-- Visits (veterinary visits, grooming etc)
+CREATE TABLE visits (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  pet_id uuid REFERENCES pets(id) ON DELETE CASCADE,
+  owner_id uuid REFERENCES profiles(id) ON DELETE CASCADE,
+  clinic_name text,
+  visit_date timestamptz,
+  visit_type text, -- checkup, vaccine, dental, emergency, grooming, other
+  total_cost numeric,
+  notes text, -- OCR raw notes
+  ai_summary text, -- GPT generated
+  ai_tags jsonb, -- e.g. {"medications":["amoxicillin"], "next_steps":["follow-up in 2 weeks"]}
+  created_at timestamptz DEFAULT now()
+);
+
+-- Attachments (receipts, PDFs, photos)
+CREATE TABLE attachments (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  visit_id uuid REFERENCES visits(id) ON DELETE CASCADE,
+  pet_id uuid REFERENCES pets(id),
+  owner_id uuid REFERENCES profiles(id),
+  url text,
+  mime_type text,
+  extracted_text text, -- text recognized by OCR
+  created_at timestamptz DEFAULT now()
+);
+
+-- Reminders
+CREATE TABLE reminders (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  pet_id uuid REFERENCES pets(id),
+  owner_id uuid REFERENCES profiles(id),
+  title text,
+  note text,
+  remind_at timestamptz,
+  recurrence text, -- "none", "yearly", "custom"
+  is_done boolean DEFAULT false,
+  created_at timestamptz DEFAULT now()
+);
+
+-- Subscriptions (RevenueCat webhooks update user status)
+CREATE TABLE subscriptions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  owner_id uuid REFERENCES profiles(id),
+  product_id text,
+  status text, -- active, cancelled, expired
+  purchase_date timestamptz,
+  expires_at timestamptz,
+  raw_payload jsonb,
+  created_at timestamptz DEFAULT now()
+);
+
+
+Indices:
+
+Index on pets(owner_id), visits(pet_id), reminders(owner_id) for queries.
+
+API routes (Serverless functions / Edge / Next.js API or Supabase RPC)
+
+For MVP, prefer simple serverless functions (e.g., Supabase Edge Functions or Vercel/Cloud Functions) to orchestrate third-party calls (OpenAI, RevenueCat validation) and to keep API keys server-side.
+
+Auth
+
+POST /api/auth/webhook/revenuecat — RevenueCat webhook to update subscriptions table
+
+Use Supabase Auth for login; authorize requests with bearer tokens (Supabase JWT)
+
+Visits & attachments
+
+GET /api/pets — list user pets (auth required)
+
+POST /api/pets — create pet
+
+GET /api/pets/:petId — get pet + basic stats
+
+POST /api/pets/:petId/visits — create visit (fields + attachments)
+
+POST /api/visits/:visitId/attachments — upload image URL (signed upload via Supabase Storage) → trigger OCR + AI pipeline (async)
+
+GET /api/visits/:visitId — get visit + ai_summary
+
+POST /api/visits/:visitId/generate_summary — trigger on-demand summary generation
+
+Reminders
+
+GET /api/pets/:petId/reminders
+
+POST /api/reminders — create reminder (server schedules FCM push)
+
+AI endpoints (server-side)
+
+POST /api/ai/extract_receipt — takes attachment_id or image URL, runs OCR (if needed), calls GPT prompt to parse fields and returns structured JSON
+
+POST /api/ai/summarize_visit — input: {notes_text, extracted_fields, pet_profile} → returns ai_summary, ai_tags, next_reminder_suggestion
+
+Subscription management
+
+POST /api/subscription/validate — verify receipt with RevenueCat and update subscriptions.
+
+AI: prompts, pipeline & examples
+Pipeline overview
+
+User uploads an image (receipt/vet note).
+
+Mobile runs ML Kit on-device OCR to get extracted_text (fallback to server OCR if poor quality).
+
+Client uploads image + extracted_text to /api/ai/extract_receipt.
+
+Server runs a specialized GPT prompt to parse date, clinic, items, meds, and cost.
+
+Server stores structured fields, calls /api/ai/summarize_visit with combined data + pet info.
+
+GPT returns plain-language summary + next steps + recommended reminder date(s).
+
+App displays summary and suggested reminders for user confirmation.
+
+OCR choices
+
+On-device: Google ML Kit Text Recognition (best privacy + quick feedback)
+
+Server fallback: Tesseract or Google Cloud Vision (if you need higher accuracy)
+
+System prompt — ai/extract_receipt
+You are a precise data-extraction assistant for pet vet receipts and medical notes.
+Input: a block of raw OCR'd text from a vet receipt or clinic note.
+Output: a JSON object with keys:
+- clinic_name (string or null)
+- visit_date (ISO 8601 or null)
+- total_cost (number or null)
+- medications (array of strings)
+- procedures (array of strings)
+- notes_summary (short string)
+- confidence (0-1)
+Return only valid JSON, nothing else.
+
+Example input (extracted_text)
+St. Mary's Animal Clinic
+Invoice # 12345
+Date: 2025-09-12
+Patient: Bella (dog) DOB: 2019-05-01
+Exam: Wellness check
+Vaccinations: Rabies $25, DHPP $40
+Medications: Rimadyl 25mg - 14 tabs - $18.00
+Total: $124.50
+Thank you for choosing St. Mary's
+
+Expected JSON output
+{
+  "clinic_name": "St. Mary's Animal Clinic",
+  "visit_date": "2025-09-12",
+  "total_cost": 124.5,
+  "medications": ["Rimadyl 25mg (14 tabs)"],
+  "procedures": ["Wellness check", "Rabies vaccination", "DHPP vaccination"],
+  "notes_summary": "Wellness exam; vaccinations (Rabies, DHPP) administered; Rimadyl prescribed (25mg).",
+  "confidence": 0.92
+}
+
+System prompt — ai/summarize_visit
+You are an empathetic veterinary assistant that summarizes vet visits for pet owners in plain language.
+Input:
+- pet: JSON {name, species, age, weight_kg}
+- visit: JSON with extracted fields (clinic_name, visit_date, total_cost, medications, procedures, notes)
+Output: JSON:
+- ai_summary: 1-3 sentence plain-language summary for the pet owner
+- ai_tags: {"visit_type":"checkup|vaccine|dental|emergency|other", "medications":[...], "next_steps":[...]}
+- suggested_reminder_iso: ISO 8601 date string for next recommended appointment (or null)
+Return only JSON.
+
+Example output
+{
+  "ai_summary": "Bella (dog, 6 yo) had a wellness check at St. Mary's Animal Clinic on 2025-09-12. She received Rabies and DHPP vaccines and was prescribed Rimadyl for pain relief.",
+  "ai_tags": {
+    "visit_type": "checkup",
+    "medications": ["Rimadyl 25mg (14 tabs)"],
+    "next_steps": ["Monitor for vaccine reaction for 48 hours", "Give Rimadyl as prescribed for pain"]
+  },
+  "suggested_reminder_iso": "2026-09-12T09:00:00Z"
+}
+
+
+Notes:
+
+Keep GPT response lengths small to save tokens. Use max_tokens conservatively (e.g., 300).
+
+Use system prompts to enforce JSON-only responses (strip out explanation).
+
+Caching & cost control
+
+Cache AI outputs per attachment_id. Do not call GPT again unless user edits the OCR text or requests a re-run.
+
+Batch smaller requests; for example, when a user uploads multiple attachments, send them in a single job to reduce overhead.
+
+Use usage quotas per user (free tier limited calls), show used calls in settings.
+
+Security & privacy
+
+Store attachments in Supabase Storage with signed URLs that expire.
+
+PII: keep only minimal owner profile data; allow data export & full account deletion.
+
+Use server-side functions to call OpenAI (do not store API key in client).
+
+Encrypt sensitive data at rest if handling payments or medical identifiers.
+
+Subscriptions & RevenueCat integration (high level)
+
+Create product IDs in App Store Connect and Google Play Console: petlog.pro.monthly, petlog.family.monthly, etc.
+
+Configure those products in RevenueCat dashboard.
+
+Client: add RevenueCat SDK to Flutter project (via purchases_flutter).
+
+On purchase, RevenueCat returns customerInfo. Send validated purchase to POST /api/subscription/validate to create subscriptions row and unlock features server-side.
+
+Implement webhook POST /api/webhook/revenuecat to update status on cancellations/refunds and store raw_payload for auditing.
+
+Analytics & events (minimum viable tracking)
+
+Track events with PostHog or Mixpanel to measure funnel & retention:
+
+app_open
+
+signup_completed
+
+add_pet {pet_id}
+
+upload_attachment {visit_id}
+
+ocr_extracted {fields_count}
+
+ai_summary_generated {visit_id}
+
+reminder_created
+
+subscription_started {plan}
+
+subscription_cancelled
+
+export_pdf
+
+Measure conversion funnel:
+
+signup → add_pet → upload_first_visit → generate_ai_summary → purchase_pro
+
+CI / Build / Release (developer commands)
+Prereqs
+
+Install Flutter SDK (stable) and Flutter doctor passes
+
+Install Xcode (for iOS), Android Studio (for Android)
+
+Setup GitHub repo & CI secrets (SUPABASE_URL, SUPABASE_KEY, OPENAI_KEY, FIREBASE_CREDENTIALS, REVENUECAT_API_KEY)
+
+Repo skeleton (folder structure)
+petlog/
+├─ android/
+├─ ios/
+├─ lib/
+│  ├─ main.dart
+│  ├─ src/
+│  │  ├─ ui/
+│  │  │  ├─ screens/
+│  │  │  └─ widgets/
+│  │  ├─ services/
+│  │  │  ├─ supabase_service.dart
+│  │  │  ├─ ai_service.dart
+│  │  │  └─ notification_service.dart
+│  │  ├─ models/
+│  │  └─ utils/
+├─ functions/ (serverless edge functions)
+│  ├─ ai_extract_receipt/
+│  ├─ ai_summarize_visit/
+│  └─ revenuecat_webhook/
+├─ scripts/
+├─ pubspec.yaml
+└─ README.md
+
+Flutter init (commands)
+# Create project
+flutter create petlog
+cd petlog
+
+# Add packages (examples)
+flutter pub add supabase_flutter
+flutter pub add firebase_messaging
+flutter pub add http
+flutter pub add provider
+flutter pub add purchases_flutter  # RevenueCat SDK
+flutter pub add image_picker
+flutter pub add flutter_local_notifications
+flutter pub add charts_flutter     # for weight trend
+
+Serverless / Supabase functions
+
+Use Supabase Edge Functions (Deno) or Node-based Cloud Functions. Example develop locally with supabase CLI.
+
+CI example (GitHub Actions)
+
+On push to main: run tests, build Android debug, run analysis, and publish to internal testers via Fastlane / Play Console.
+
+On tag v*: build Release (iOS build archive via macOS runner + Fastlane upload to TestFlight).
+
+Testing & QA
+
+Unit tests: core logic (reminder scheduling, parsing heuristics, DB CRUD).
+
+Integration tests: upload image → OCR → AI → store visit.
+
+Beta: invite 50 pet owners via TestFlight and Play alpha; collect NPS, retention after 7 days.
+
+Edge cases: blurred images, missing price on receipts, foreign date formats — provide a manual edit step after auto-extraction.
+
+Marketing & launch plan (short)
+
+Pre-launch landing page + email capture (one-liner + waitlist)
+
+Soft launch: Reddit r/dogs, r/cats, local Facebook pet groups
+
+Partner micro-influencers (TikTok pet creators) for early UGC
+
+Viral hooks: “I uploaded my dog’s vet receipts — it told me X” — 15s clips
+
+Launch metrics: day-7 retention > 25% and conversion from free → pro > 4% target
+
+Monetization logic (pricing & gating)
+
+Free tier: core functionality, 1 pet, manual logs, basic reminders
+
+Pro ($4.99/mo): multi-pet, AI summary generation, PDF export, higher upload limit
+
+Family ($9.99/mo): shared family access up to 10 pets
+
+Lifetime ($39.99): unlock pro features forever
+
+Implement a limited free AI-call quota per user (e.g., 3 summary runs per month) to limit cost exposure
+
+Churn mitigation:
+
+Annual discount (2 months free)
+
+Email drip onboarding: highlight saved money & convenience (exported reports)
+
+Retarget users in-app with "you have unused generated summaries — upgrade to see them"
+
+Launch & post-launch checklist
+
+ App icons for iOS / Android (all required sizes)
+
+ Privacy policy + Terms (hosted)
+
+ RevenueCat products created + sandbox tested
+
+ Supabase rules & Row Level Security (RLS) enabled
+
+ Encryption keys stored in CI secrets
+
+ Firebase push set up (APNs key + FCM)
+
+ Automated backups for Supabase DB
+
+ Beta testers onboarded & feedback survey ready
+
+Developer Notes & Tips
+
+Start rule-based reminders & parsing first (simple regex + enums) to ship faster; add AI refinement later.
+
+Prioritize offline-first UX: allow photo capture and local queue upload (user may be in vet with poor net).
+
+Make AI "explainability" easy: show the extracted fields and let users correct them before saving — avoids wrong automation.
+
+Offer data export (CSV/PDF) as an extra hook for paid users.
+
+Bonus: Example AI prompt to generate a user-facing health card (callable via ai/summarize_visit)
+
+System:
+
+You are a friendly veterinary assistant. Summarize the visit in plain, non-technical English for a pet owner. Mention: pet name, species, what happened, medications, any warnings, and suggested next action. Keep it to 2-3 sentences. Provide a suggested next reminder date in ISO format if appropriate.
+
+
+User (structured):
+
+{
+  "pet": {"name": "Bella", "species": "dog", "dob": "2019-05-01"},
+  "visit": {
+    "clinic_name": "St. Mary's Animal Clinic",
+    "visit_date": "2025-09-12",
+    "total_cost": 124.5,
+    "medications": ["Rimadyl 25mg (14 tabs)"],
+    "procedures": ["Wellness check", "Rabies vaccination", "DHPP vaccination"],
+    "notes": "..."
+  }
+}
+
+
+Expected assistant output (JSON):
+
+{
+  "ai_summary": "Bella had a wellness check on 2025-09-12 at St. Mary's. She received Rabies and DHPP vaccines and was prescribed Rimadyl for pain. Watch for side effects from vaccines for 48 hours and give Rimadyl as instructed.",
+  "suggested_reminder_iso": "2026-09-12T09:00:00Z",
+  "ai_tags": {"visit_type":"checkup","medications":["Rimadyl 25mg (14 tabs)"],"next_steps":["Monitor for 48 hours","Follow dosing instructions for Rimadyl"]}
+}
