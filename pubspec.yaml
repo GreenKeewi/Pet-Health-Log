@@ -1,0 +1,75 @@
+name: pet_health_log
+description: "A friendly, privacy-first app that helps pet owners track vet visits, medications, vaccines, weight, costs, and get AI-generated visit summaries."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # Backend & Auth
+  supabase_flutter: ^2.0.0
+  
+  # HTTP & API
+  http: ^1.1.0
+  
+  # State Management
+  provider: ^6.1.1
+  
+  # Subscriptions
+  purchases_flutter: ^6.0.0
+  
+  # Notifications
+  firebase_messaging: ^14.7.6
+  flutter_local_notifications: ^16.2.0
+  
+  # Image & Camera
+  image_picker: ^1.0.4
+  
+  # Charts for weight trends
+  fl_chart: ^0.65.0
+  
+  # UI & Icons
+  cupertino_icons: ^1.0.2
+  
+  # Date & Time
+  intl: ^0.18.1
+  
+  # UUID generation
+  uuid: ^4.2.1
+  
+  # File handling
+  path_provider: ^2.1.1
+  
+  # PDF generation
+  pdf: ^3.10.7
+  printing: ^5.11.1
+  
+  # Animations
+  lottie: ^2.7.0
+  
+  # Image caching
+  cached_network_image: ^3.3.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  
+  assets:
+    - assets/images/
+    - assets/animations/
+    - assets/icons/
+  
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: fonts/Inter-Regular.ttf
+        - asset: fonts/Inter-Bold.ttf
+          weight: 700
