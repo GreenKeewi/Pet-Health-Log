@@ -22,7 +22,7 @@ class AppTheme {
         error: error,
       ),
       scaffoldBackgroundColor: background,
-      
+
       // Typography
       textTheme: const TextTheme(
         displayLarge: TextStyle(
@@ -72,9 +72,7 @@ class AppTheme {
       // Card theme
       cardTheme: CardTheme(
         elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         color: surface,
       ),
 
@@ -146,15 +144,15 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: error, width: 1),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
         hintStyle: const TextStyle(color: textSecondary),
       ),
 
       // Icon theme
-      iconTheme: const IconThemeData(
-        color: primary,
-        size: 24,
-      ),
+      iconTheme: const IconThemeData(color: primary, size: 24),
     );
   }
 }

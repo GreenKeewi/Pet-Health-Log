@@ -43,9 +43,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading data: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error loading data: $e')));
         setState(() => _isLoading = false);
       }
     }
@@ -64,17 +64,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
       appBar: AppBar(
         title: const Text('Pet Health Log'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: _signOut,
-          ),
+          IconButton(icon: const Icon(Icons.logout), onPressed: _signOut),
         ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _pets.isEmpty
-              ? _buildEmptyState()
-              : _buildDashboard(),
+          ? _buildEmptyState()
+          : _buildDashboard(),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           final result = await Navigator.push(
@@ -177,18 +174,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
         scrollDirection: Axis.horizontal,
         child: Row(
           children: _pets
-              .map((pet) => Padding(
-                    padding: const EdgeInsets.only(right: 12),
-                    child: ChoiceChip(
-                      label: Text(pet.name),
-                      selected: _selectedPet?.id == pet.id,
-                      onSelected: (selected) {
-                        if (selected) {
-                          setState(() => _selectedPet = pet);
-                        }
-                      },
-                    ),
-                  ))
+              .map(
+                (pet) => Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: ChoiceChip(
+                    label: Text(pet.name),
+                    selected: _selectedPet?.id == pet.id,
+                    onSelected: (selected) {
+                      if (selected) {
+                        setState(() => _selectedPet = pet);
+                      }
+                    },
+                  ),
+                ),
+              )
               .toList(),
         ),
       ),
@@ -221,10 +220,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    pet.name,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
+                  Text(pet.name, style: Theme.of(context).textTheme.titleLarge),
                   const SizedBox(height: 4),
                   Text(
                     '${pet.species.toUpperCase()}${pet.breed != null ? ' • ${pet.breed}' : ''}',
@@ -250,10 +246,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Quick Actions',
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
+        Text('Quick Actions', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 12),
         Row(
           children: [
@@ -276,7 +269,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => AddReminderScreen(pet: _selectedPet!),
+                        builder: (context) =>
+                            AddReminderScreen(pet: _selectedPet!),
                       ),
                     );
                     if (result == true) {
@@ -300,7 +294,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => TimelineScreen(pet: _selectedPet!),
+                        builder: (context) =>
+                            TimelineScreen(pet: _selectedPet!),
                       ),
                     );
                   }
@@ -359,9 +354,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           color: Theme.of(context).colorScheme.primary,
         ),
         title: Text(reminder.title),
-        subtitle: Text(
-          _formatDate(reminder.remindAt),
-        ),
+        subtitle: Text(_formatDate(reminder.remindAt)),
         trailing: IconButton(
           icon: const Icon(Icons.check_circle_outline),
           onPressed: () {

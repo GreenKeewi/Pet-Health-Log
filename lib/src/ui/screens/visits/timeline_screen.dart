@@ -35,9 +35,9 @@ class _TimelineScreenState extends State<TimelineScreen> {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading visits: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error loading visits: $e')));
         setState(() => _isLoading = false);
       }
     }
@@ -57,14 +57,12 @@ class _TimelineScreenState extends State<TimelineScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('${widget.pet.name}\'s Timeline'),
-      ),
+      appBar: AppBar(title: Text('${widget.pet.name}\'s Timeline')),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _visits.isEmpty
-              ? _buildEmptyState()
-              : _buildTimeline(),
+          ? _buildEmptyState()
+          : _buildTimeline(),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           // Navigate to add visit screen
@@ -137,8 +135,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
                 child: Text(
                   monthKey,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               ...visits.map((visit) => _buildVisitCard(visit)),
@@ -177,10 +175,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
                       children: [
                         Text(
                           visit.clinicName ?? 'Visit',
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         if (visit.visitDate != null) ...[
                           const SizedBox(height: 4),
@@ -205,8 +201,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
                       child: Text(
                         '\$${visit.totalCost!.toStringAsFixed(2)}',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                 ],
@@ -219,15 +215,17 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: _getVisitTypeColor(visit.visitType!).withOpacity(0.2),
+                    color: _getVisitTypeColor(
+                      visit.visitType!,
+                    ).withOpacity(0.2),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     visit.visitType!.toUpperCase(),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: _getVisitTypeColor(visit.visitType!),
-                          fontWeight: FontWeight.bold,
-                        ),
+                      color: _getVisitTypeColor(visit.visitType!),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
